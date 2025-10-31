@@ -3,13 +3,6 @@
 // =====================================
 console.log("🚀 Starting Express + MongoDB server...");
 
-// Use relative path to demo folder modules
-var express = require("../demo/node_modules/express");
-var http = require("http");
-var path = require("path");
-var mongodb = require("../demo/node_modules/mongodb");
-var MongoClient = mongodb.MongoClient;
-var ObjectId = mongodb.ObjectId;
 
 // Express app
 var app = express();
