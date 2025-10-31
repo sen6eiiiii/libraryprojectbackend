@@ -15,9 +15,6 @@ var ObjectId = mongodb.ObjectId;
 var app = express();
 app.use(express.json());
 
-// Static assets - CORRECTED PATHS
-app.use('/assets', express.static(path.join(__dirname, '../assets')));
-app.use('/images', express.static(path.join(__dirname, '../assets/images')));
 
 // Enable CORS
 app.use(function (req, res, next) {
