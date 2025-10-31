@@ -27,7 +27,9 @@ app.use(function (req, res, next) {
 // =====================================
 // MongoDB Local Connection (Database: backendlibrary)
 // =====================================
-
+var connectionURI = "mongodb://127.0.0.1:27017/backendlibrary";
+var client = new MongoClient(connectionURI);
+var db;
 
 async function connectDB() {
   try {
