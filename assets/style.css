@@ -1,4 +1,6 @@
-/* ===== Global Styles ===== */
+/* =====================================================
+   GLOBAL STYLES
+===================================================== */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f8fafc;
@@ -8,43 +10,167 @@ body {
   line-height: 1.6;
 }
 
-/* ===== Header ===== */
+/* =====================================================
+   HEADER
+===================================================== */
 header {
-  background-color: #4f46e5;
+  background-color: #4f46e5; /* Indigo theme */
   color: white;
-  text-align: center;
-  padding: 1.5rem 0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1000;
 }
 
-header h1 {
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== Logo ===== */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.logo i {
+  font-size: 1.8rem;
+  color: #c7d2fe;
+}
+
+.logo h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
-header button {
-  background-color: #10b981;
+/* ===== Search Bar ===== */
+.search-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 240px;
+}
+
+.search-bar {
+  position: relative;
+  width: 100%;
+  max-width: 450px;
+  display: flex;
+  align-items: center;
+}
+
+.search-bar i.fa-magnifying-glass {
+  position: absolute;
+  left: 15px;
+  color: #6b7280;
+  pointer-events: none;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 10px 42px 10px 42px;
+  border-radius: 25px;
+  border: 2px solid transparent;
+  font-size: 0.95rem;
+  background: white;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.search-bar input::placeholder {
+  color: #9ca3af;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.clear-search {
+  position: absolute;
+  right: 12px;
+  background: none;
   border: none;
-  color: white;
-  font-size: 1rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
+  color: #6b7280;
   cursor: pointer;
-  transition: 0.3s ease;
+  font-size: 1rem;
+  transition: color 0.2s ease;
 }
 
-header button:hover {
+.clear-search:hover {
+  color: #374151;
+}
+
+/* ===== Cart Button ===== */
+.cart-button button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cart-button button:hover:not(:disabled) {
   background-color: #059669;
+  transform: translateY(-2px);
 }
 
-/* ===== Main Content ===== */
+.cart-button button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ===== Responsive Header ===== */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .logo {
+    justify-content: center;
+  }
+
+  .cart-button {
+    display: flex;
+    justify-content: center;
+  }
+
+  .search-container {
+    order: 3;
+  }
+}
+
+/* =====================================================
+   MAIN CONTENT
+===================================================== */
 main {
   padding: 2rem;
   max-width: 1200px;
   margin: auto;
 }
 
-/* ===== Sorting Controls ===== */
+/* =====================================================
+   SORTING CONTROLS
+===================================================== */
 .sorting-controls {
   display: flex;
   flex-wrap: wrap;
@@ -57,13 +183,21 @@ main {
   margin-bottom: 1.5rem;
 }
 
+.sorting-controls label {
+  font-weight: 500;
+}
+
 .sorting-controls select {
   padding: 0.4rem 0.6rem;
   border-radius: 5px;
   border: 1px solid #ccc;
+  background-color: white;
+  cursor: pointer;
 }
 
-/* ===== Product Cards ===== */
+/* =====================================================
+   LESSON CARDS
+===================================================== */
 figure {
   background: white;
   border: 1px solid #e5e7eb;
@@ -89,11 +223,20 @@ figure img {
   border-radius: 10px;
 }
 
-.rabbit-image {
-  border: 2px solid #facc15;
+figure h1 {
+  font-size: 1.2rem;
+  color: #4f46e5;
+  margin: 0.6rem 0;
 }
 
-/* ===== Buttons ===== */
+figure p {
+  margin: 0.3rem 0;
+  color: #444;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
 button {
   display: inline-flex;
   align-items: center;
@@ -106,7 +249,12 @@ button {
   cursor: pointer;
   font-weight: 500;
   margin: 0.3rem;
-  transition: background 0.3s;
+  transition: background 0.3s, transform 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background-color: #3730a3;
+  transform: translateY(-2px);
 }
 
 button:disabled {
@@ -114,15 +262,13 @@ button:disabled {
   cursor: not-allowed;
 }
 
-button:hover:not(:disabled) {
-  background-color: #3730a3;
-}
-
 button i {
   font-size: 0.9rem;
 }
 
-/* ===== Checkout Page ===== */
+/* =====================================================
+   CHECKOUT PAGE
+===================================================== */
 .order-summary, .checkout-form, .receipt {
   background: #fff;
   border-radius: 10px;
@@ -143,6 +289,7 @@ button i {
   padding: 0.6rem;
   border: 1px solid #ccc;
   border-radius: 6px;
+  font-size: 0.95rem;
 }
 
 .checkout-form button {
@@ -158,12 +305,26 @@ button i {
   border-left: 4px solid #4f46e5;
 }
 
-/* ===== Empty Cart Message ===== */
+/* =====================================================
+   SEARCH INFO + EMPTY CART
+===================================================== */
+.search-info {
+  text-align: center;
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background: #eef2ff;
+  border-radius: 8px;
+  color: #4f46e5;
+  font-weight: 500;
+}
+
 main div h2 {
   text-align: center;
 }
 
-/* ===== Responsive Layout ===== */
+/* =====================================================
+   RESPONSIVE DESIGN
+===================================================== */
 @media (max-width: 768px) {
   figure {
     width: 90%;
@@ -174,6 +335,10 @@ main div h2 {
   }
 
   header h1 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+  }
+
+  main {
+    padding: 1rem;
   }
 }

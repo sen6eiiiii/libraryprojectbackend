@@ -1,73 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pet Store App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library App</title>
 
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
 
   <!-- Vue 3 -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
   <!-- External CSS -->
-  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/style.css" />
 </head>
 
 <body>
   <div id="app">
+    <!-- Header -->
     <header>
-      <h1 v-text="sitename" class="title"></h1>
-      <h2>
-        <button v-on:click="showCheckout"> 
-          {{ itemsInTheCart }}
-          <i class="fa-solid fa-cart-shopping"></i>
-          Checkout
-        </button>
-      </h2>
+      <div class="header-content">
+        <div class="logo">
+          <i class="fa-solid fa-book-open-reader"></i>
+          <h1>{{ sitename }}</h1>
+        </div>
+
+        <div class="search-container" v-if="showLessons">
+          <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Search lessons by subject, location, price..."
+            />
+            <button v-if="searchQuery" @click="clearSearch" class="clear-search">
+              <i class="fa-solid fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="cart-button">
+          <button @click="showCheckout" :disabled="cart.length === 0">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span v-if="itemsInTheCart">({{ itemsInTheCart }})</span> Checkout
+          </button>
+        </div>
+      </div>
     </header>
 
+    <!-- Main Content -->
     <main>
       <!-- Sorting Controls -->
-      <div class="sorting-controls" v-if="showProduct">
-        <label>Sort by: </label>
+      <div class="sorting-controls" v-if="showLessons">
+        <label>Sort by:</label>
         <select v-model="sortBy">
           <option value="subject">Subject</option>
           <option value="location">Location</option>
           <option value="price">Price</option>
           <option value="spaces">Availability</option>
         </select>
-        
-        <label>Order: </label>
+
+        <label>Order:</label>
         <select v-model="sortOrder">
           <option value="asc">Ascending</option>
           <option value="desc">Descending</option>
         </select>
       </div>
 
-      <!-- Products -->
-      <div v-if="showProduct">
-        <figure v-for="product in sortedProducts" :key="product.id">
-          <img :src="product.image" :alt="product.title" :class="{'rabbit-image': product.id === 1001}">
-          <h1 v-text="product.title" class="title"></h1>
-          <p v-text="product.description"></p>
-          <p>Price: {{ product.price }}</p>
-          <p>Spaces Available: {{ product.availableInventory }}</p>
+      <!-- Search Info -->
+      <div v-if="showLessons && searchQuery" class="search-info">
+        <p>Showing {{ filteredLessons.length }} results for "{{ searchQuery }}"</p>
+      </div>
 
-          <button v-on:click="addItemToTheCart(product.id)" v-if="canAddToTheCart(product.id)">
+      <!-- Lessons -->
+      <div v-if="showLessons">
+        <figure v-for="lesson in sortedAndFilteredLessons" :key="lesson.id">
+          <img :src="lesson.image" :alt="lesson.subject" />
+          <h1>{{ lesson.subject }}</h1>
+          <p><strong>Location:</strong> {{ lesson.location }}</p>
+          <p><strong>Price:</strong> £{{ lesson.price }}</p>
+          <p><strong>Spaces Available:</strong> {{ lesson.spaces }}</p>
+
+          <button v-if="canAddToCart(lesson.id)" @click="addItemToCart(lesson.id)">
             <i class="fa-solid fa-cart-plus"></i> Add to Cart
           </button>
-          <button disabled v-else>
+          <button v-else disabled>
             <i class="fa-solid fa-ban"></i> Add to Cart
           </button>
 
-          <button v-on:click="removeItemFromCart(product.id)" :disabled="!canRemoveFromCart(product.id)">
+          <button
+            @click="removeItemFromCart(lesson.id)"
+            :disabled="!canRemoveFromCart(lesson.id)"
+          >
             <i class="fa-solid fa-trash-can"></i> Remove from Cart
           </button>
 
-          <div v-if="!canAddToTheCart(product.id) && cart.length > 0">
-            You have added all available items to the Cart
+          <div v-if="!canAddToCart(lesson.id) && cart.length > 0">
+            No more spaces available for this lesson
           </div>
         </figure>
       </div>
@@ -75,193 +104,292 @@
       <!-- Checkout Page -->
       <div v-else>
         <h1>Checkout</h1>
-        
+
         <!-- Cart Items -->
         <div v-if="cart.length > 0">
-          <h2>Your Cart Items:</h2>
+          <h2>Your Selected Lessons:</h2>
           <div v-for="item in cartItems" :key="item.id">
-            <h3>{{ item.title }}</h3>
-            <p>Price: {{ item.price }}</p>
+            <h3>{{ item.subject }}</h3>
+            <p>Price: £{{ item.price }}</p>
             <p>Quantity: {{ item.quantity }}</p>
-            <button v-on:click="removeItemFromCart(item.id)">
+            <button @click="removeItemFromCart(item.id)">
               <i class="fa-solid fa-trash-can"></i> Remove
             </button>
           </div>
-          
+
           <!-- Order Summary -->
           <div class="order-summary">
             <h2>Order Summary</h2>
-            <p>Total Items: {{ totalItems }}</p>
-            <p>Total Price: {{ totalPrice }}</p>
+            <p>Total Lessons: {{ totalItems }}</p>
+            <p>Total Price: £{{ totalPrice }}</p>
           </div>
 
-          <!-- Checkout Form Component -->
+          <!-- Checkout Form -->
           <checkout-form
             v-if="!orderSubmitted"
             :can-submit="canSubmitOrder"
             v-model:name="customerName"
-            v-model:email="customerEmail"
-            v-model:address="customerAddress"
+            v-model:phone="customerPhone"
             @submit="submitOrder"
           ></checkout-form>
 
           <!-- Order Receipt -->
           <div v-if="orderSubmitted" class="receipt">
-            <h2>Order Receipt</h2>
-            <p><strong>Customer:</strong> {{ customerName }}</p>
-            <p><strong>Email:</strong> {{ customerEmail }}</p>
-            <p><strong>Address:</strong> {{ customerAddress }}</p>
-            <h3>Items Purchased:</h3>
+            <h2>Order Confirmation</h2>
+            <p><strong>Name:</strong> {{ customerName }}</p>
+            <p><strong>Phone:</strong> {{ customerPhone }}</p>
+            <h3>Lessons Booked:</h3>
             <div v-for="item in cartItems" :key="item.id">
-              <p>{{ item.quantity }} x {{ item.title }} - {{ item.price * item.quantity }}</p>
+              <p>{{ item.quantity }} × {{ item.subject }} - £{{ item.price * item.quantity }}</p>
             </div>
-            <h3>Total Cost: {{ totalPrice }}</h3>
-            <p><strong>{{ customerName }} bought these items for a total of {{ totalPrice }}</strong></p>
+            <h3>Total Cost: £{{ totalPrice }}</h3>
+            <p><strong>Order submitted successfully!</strong></p>
           </div>
         </div>
-        
+
         <!-- Empty Cart -->
         <div v-else>
           <h2>Your cart is empty</h2>
-          <p>Add some products to your cart first!</p>
+          <p>Add some lessons to your cart first!</p>
         </div>
 
         <button @click="goBack">
-          <i class="fa-solid fa-arrow-left"></i> Go Back to Products
+          <i class="fa-solid fa-arrow-left"></i> Go Back to Lessons
         </button>
       </div>
     </main>
   </div>
-
-  <script>
-  var { createApp, ref } = Vue;
-
-  // ✅ Checkout Form Component
-  var CheckoutForm = {
-    template: `
-      <div class="checkout-form">
-        <h2>Customer Information</h2>
-        <input type="text" v-model="localName" placeholder="Your Name">
-        <input type="email" v-model="localEmail" placeholder="Your Email">
-        <input type="text" v-model="localAddress" placeholder="Your Address">
-        
-        <button @click="handleSubmit" :disabled="!canSubmit">
-          <i class="fa-solid fa-credit-card"></i> Submit Order
-        </button>
-      </div>
-    `,
-    props: {
-      canSubmit: Boolean,
-      name: String,
-      email: String,
-      address: String
-    },
-    emits: ['submit', 'update:name', 'update:email', 'update:address'],
-    data() {
-      return {
-        localName: this.name,
-        localEmail: this.email,
-        localAddress: this.address
-      };
-    },
-    watch: {
-      localName(value) { this.$emit('update:name', value); },
-      localEmail(value) { this.$emit('update:email', value); },
-      localAddress(value) { this.$emit('update:address', value); }
-    },
-    methods: {
-      handleSubmit() {
-        if (this.canSubmit) this.$emit('submit');
+<script>
+  var app = Vue.createApp({
+    components: { 
+      CheckoutForm: {
+        template: `
+          <div class="checkout-form">
+            <h2>Student Information</h2>
+            <input 
+              type="text" 
+              v-model.trim="localName" 
+              placeholder="Your Name (e.g. John Doe)"
+            >
+            <input 
+              type="text" 
+              v-model.trim="localPhone" 
+              placeholder="Your Phone Number (e.g. +44 7123 456789)"
+            >
+            <button @click="handleSubmit" :disabled="!canSubmit">
+              <i class="fa-solid fa-credit-card"></i> Submit Order
+            </button>
+          </div>
+        `,
+        props: {
+          canSubmit: Boolean,
+          name: String,
+          phone: String
+        },
+        emits: ['submit', 'update:name', 'update:phone'],
+        data: function() {
+          return {
+            localName: this.name,
+            localPhone: this.phone
+          };
+        },
+        watch: {
+          localName: function(val) { this.$emit('update:name', val); },
+          localPhone: function(val) { this.$emit('update:phone', val); }
+        },
+        methods: {
+          handleSubmit: function() {
+            if (this.canSubmit) {
+              this.$emit('submit');
+            } else {
+              alert("Please enter a valid name and phone number before submitting.");
+            }
+          }
+        }
       }
-    }
-  };
-
-  // ✅ Main App
-  createApp({
-    components: { CheckoutForm },
-    data() {
+    },
+    data: function() {
       return {
-        sitename: "This is my wonderful app",
-        showProduct: true,
+        sitename: "Library Lesson Booking App",
+        showLessons: true,
         sortBy: 'subject',
         sortOrder: 'asc',
         customerName: '',
-        customerEmail: '',
-        customerAddress: '',
+        customerPhone: '',
         orderSubmitted: false,
         cart: [],
-        products: [
-          { id: 1001, title: "Rabbit food 25lb bag", subject: "Pet Food", description: "A 25 pound bag of irresistible organic goodness for your rabbit.", price: 2000, image: "../assets/images/rabbit.png", location: "Luton", availableInventory: 10 },
-          { id: 1002, title: "Scorpion", subject: "Live Animals", description: "Can be used as food or as a pet.", price: 3500, image: "../assets/images/scorpion.png", location: "London", availableInventory: 10 },
-          { id: 1003, title: "Snake", subject: "Live Animals", description: "A calm and slithery companion.", price: 5000, image: "../assets/images/snake.png", location: "Hendon", availableInventory: 10 },
-          { id: 1004, title: "Hamster Cage", subject: "Pet Accessories", description: "Spacious cage with exercise wheel and tunnels.", price: 4500, image: "../assets/images/hamster.png", location: "Manchester", availableInventory: 8 },
-          { id: 1005, title: "Bird Seed Mix", subject: "Pet Food", description: "Premium seed mix for all types of birds.", price: 1500, image: "../assets/images/pappagallo.png", location: "Birmingham", availableInventory: 15 },
-          { id: 1006, title: "Fish Tank", subject: "Pet Accessories", description: "20-gallon aquarium with filter and lighting.", price: 7500, image: "../assets/images/fishtank.png", location: "Leeds", availableInventory: 5 },
-          { id: 1007, title: "Guinea Pig", subject: "Live Animals", description: "Friendly and social small pet.", price: 2500, image: "../assets/images/hamster.png", location: "Liverpool", availableInventory: 12 },
-          { id: 1008, title: "Cat Litter", subject: "Pet Supplies", description: "Clumping litter with odor control.", price: 1800, image: "../assets/images/cat.png", location: "Glasgow", availableInventory: 20 },
-          { id: 1009, title: "Dog Leash", subject: "Pet Accessories", description: "Durable 6-foot leash with comfortable handle.", price: 1200, image: "../assets/images/dog.png", location: "Edinburgh", availableInventory: 25 },
-          { id: 1010, title: "Turtle Food", subject: "Pet Food", description: "Nutritional pellets for aquatic and land turtles.", price: 2200, image: "../assets/images/turtle.png", location: "Cardiff", availableInventory: 18 },
+        searchQuery: '',
+        lessons: [
+          { id: 1001, subject: "Mathematics", location: "Hendon", price: 100, spaces: 5, image: "../assets/images/maths.png" },
+          { id: 1002, subject: "Physics", location: "Colindale", price: 80, spaces: 5, image: "../assets/images/physic.png" },
+          { id: 1003, subject: "Chemistry", location: "Brent Cross", price: 90, spaces: 5, image: "../assets/images/chemistry.png" },
+          { id: 1004, subject: "Biology", location: "Golders Green", price: 95, spaces: 5, image: "../assets/images/biology.png" },
+          { id: 1005, subject: "History", location: "Camden", price: 70, spaces: 5, image: "../assets/images/history.png" },
+          { id: 1006, subject: "English", location: "Ealing", price: 85, spaces: 5, image: "../assets/images/english.png" },
+          { id: 1007, subject: "Computer Science", location: "Watford", price: 120, spaces: 5, image: "../assets/images/compsci.png" },
+          { id: 1008, subject: "Art", location: "Hackney", price: 60, spaces: 5, image: "../assets/images/artbook.png" },
+          { id: 1009, subject: "Music", location: "Stratford", price: 110, spaces: 5, image: "../assets/images/music.png" },
+          { id: 1010, subject: "Economics", location: "Islington", price: 130, spaces: 5, image: "../assets/images/economicsbook.png" }
         ]
       };
     },
     computed: {
-      itemsInTheCart() {
+      itemsInTheCart: function() {
         return this.cart.length || "";
       },
-      sortedProducts() {
-        return [...this.products].sort((a, b) => {
-          let aVal = a[this.sortBy], bVal = b[this.sortBy];
-          if (typeof aVal === 'string') { aVal = aVal.toLowerCase(); bVal = bVal.toLowerCase(); }
-          return this.sortOrder === 'asc' ? aVal > bVal ? 1 : -1 : aVal < bVal ? 1 : -1;
+      filteredLessons: function() {
+        if (!this.searchQuery) return this.lessons;
+        var q = this.searchQuery.toLowerCase();
+        return this.lessons.filter(function(l) {
+          return l.subject.toLowerCase().includes(q) ||
+                 l.location.toLowerCase().includes(q) ||
+                 l.price.toString().includes(q);
         });
       },
-      cartItems() {
-        const counts = {};
-        this.cart.forEach(id => counts[id] = (counts[id] || 0) + 1);
-        return Object.keys(counts).map(id => {
-          const p = this.products.find(p => p.id === parseInt(id));
-          return { ...p, quantity: counts[id] };
+      sortedLessons: function() {
+        var self = this;
+        return [...this.filteredLessons].sort(function(a, b) {
+          var aVal = typeof a[self.sortBy] === 'string' ? a[self.sortBy].toLowerCase() : a[self.sortBy];
+          var bVal = typeof b[self.sortBy] === 'string' ? b[self.sortBy].toLowerCase() : b[self.sortBy];
+          return self.sortOrder === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
         });
       },
-      totalItems() {
+      sortedAndFilteredLessons: function() {
+        return this.sortedLessons;
+      },
+      cartItems: function() {
+        var counts = {};
+        var self = this;
+        this.cart.forEach(function(id) { 
+          counts[id] = (counts[id] || 0) + 1; 
+        });
+        return Object.keys(counts).map(function(id) {
+          var lesson = self.lessons.find(function(l) { 
+            return l.id === parseInt(id); 
+          });
+          return { ...lesson, quantity: counts[id] };
+        });
+      },
+      totalItems: function() {
         return this.cart.length;
       },
-      totalPrice() {
-        return this.cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      totalPrice: function() {
+        var self = this;
+        return this.cartItems.reduce(function(sum, i) { 
+          return sum + i.price * i.quantity; 
+        }, 0);
       },
-      canSubmitOrder() {
-        return this.cart.length > 0 && this.customerName && this.customerEmail && this.customerAddress;
+      canSubmitOrder: function() {
+        var nameValid = /^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]{2,}$/.test(this.customerName.trim());
+        var phoneValid = /^[0-9+\s]{6,}$/.test(this.customerPhone.trim());
+        return this.cart.length > 0 && nameValid && phoneValid;
       }
     },
     methods: {
-      showCheckout() {
-        this.showProduct = !this.showProduct;
+      showCheckout: function() {
+        this.showLessons = false;
         this.orderSubmitted = false;
       },
-      addItemToTheCart(id) {
-        this.cart.push(id);
+      addItemToCart: function(id) {
+        var lesson = this.lessons.find(function(l) { 
+          return l.id === id; 
+        });
+        if (lesson && lesson.spaces > 0) {
+          this.cart.push(id);
+          lesson.spaces--;
+        }
       },
-      removeItemFromCart(id) {
-        const i = this.cart.indexOf(id);
-        if (i > -1) this.cart.splice(i, 1);
+      removeItemFromCart: function(id) {
+        var i = this.cart.indexOf(id);
+        if (i > -1) {
+          this.cart.splice(i, 1);
+          var lesson = this.lessons.find(function(l) { 
+            return l.id === id; 
+          });
+          if (lesson) lesson.spaces++;
+        }
       },
-      goBack() {
-        this.showProduct = true;
+      goBack: function() {
+        this.showLessons = true;
         this.orderSubmitted = false;
       },
-      submitOrder() {
-        if (this.canSubmitOrder) this.orderSubmitted = true;
+      submitOrder: function() {
+  var self = this;
+  if (this.canSubmitOrder) {
+    // Prepare order data to send to backend
+    var orderData = {
+      name: this.customerName,
+      phone: this.customerPhone,
+      lessonIDs: this.cart,
+      totalPrice: this.totalPrice,
+      totalItems: this.totalItems,
+      orderDate: new Date().toISOString()
+    };
+
+    console.log("📦 Sending order data to backend:", orderData);
+
+    // ✅ Correct POST request to your existing backend
+    fetch("http://localhost:8080/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
-      canAddToTheCart(productId) {
-        const p = this.products.find(p => p.id === productId);
-        const count = this.cart.filter(id => id === productId).length;
-        return p && count < p.availableInventory;
-      },
-      canRemoveFromCart(productId) {
-        return this.cart.includes(productId);
+      body: JSON.stringify(orderData)
+    })
+    .then(function(res) {
+      console.log("📨 Response status:", res.status, res.statusText);
+      return res.json();
+    })
+    .then(function(data) {
+      console.log("✅ Server response data:", data);
+
+      // ✅ This confirms the backend inserted the order into MongoDB "orders" collection
+      if (data.success && data.orderId) {
+        console.log("✅ Order successfully saved in MongoDB (CST3144 → backendlibrary → orders)");
+        self.orderSubmitted = true;
+
+        // Update frontend after success
+        self.cart = [];
+        self.customerName = '';
+        self.customerPhone = '';
+
+        alert("✅ Order submitted successfully! It is now stored in the MongoDB 'orders' collection.");
+      } else {
+        console.error("❌ Server returned unsuccessful response:", data);
+        alert("❌ Failed to save order: " + (data.error || "Unknown error"));
       }
+    })
+    .catch(function(err) {
+      console.error("❌ Fetch error:", err);
+      alert("❌ Network or server error: " + err.message);
+    });
+  } else {
+    alert("Please enter a valid name and phone number before submitting.");
+  }
+},
+      canAddToCart: function(id) {
+        var l = this.lessons.find(function(l) { 
+          return l.id === id; 
+        });
+        return l && l.spaces > 0;
+      },
+      canRemoveFromCart: function(id) {
+        return this.cart.includes(id);
+      },
+      clearSearch: function() {
+        this.searchQuery = '';
+      }
+    },
+    mounted: function() {
+      console.log("🚀 Vue app mounted");
+      console.log("📚 Lessons loaded:", this.lessons.length);
+      console.log("🛒 Cart initialized:", this.cart.length);
     }
-  }).mount('#app');
-  </script>
+  });
+
+ var vm = app.mount("#app");
+ window.vm=vm;//I will use vm to access the instance
+</script>
+ 
 </body>
 </html>
