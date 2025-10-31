@@ -32,10 +32,7 @@ var client = new MongoClient(connectionURI);
 var db;
 
 async function connectDB() {
-  try {
-    await client.connect();
-    db = client.db("backendlibrary");
-    console.log("✅ Connected to MongoDB Database: backendlibrary");
+  
 
     // Check available collections
     var collections = await db.listCollections().toArray();
