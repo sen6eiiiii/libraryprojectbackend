@@ -11,6 +11,9 @@ var mongodb = require("../demo/node_modules/mongodb");
 var MongoClient = mongodb.MongoClient;
 var ObjectId = mongodb.ObjectId;
 
+// Express app
+var app = express();
+app.use(express.json());
 
 // Static assets - CORRECTED PATHS
 app.use('/assets', express.static(path.join(__dirname, '../assets')));
